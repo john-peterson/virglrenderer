@@ -856,7 +856,7 @@ int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks
       if (ret) {
          if (drm_fd >= 0)
             close(drm_fd);
-         virgl_error("failed to initialize vrend winsys");
+         virgl_error("failed to initialize vrend winsys\n");
          goto fail;
       }
       state.winsys_initialized = true;
