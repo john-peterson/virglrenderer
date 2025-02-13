@@ -1,0 +1,9 @@
+export CFLAGS="--target=aarch64-linux-android30 -w -D VIRGL_EGL_DEBUG=1" 
+export LDFLAGS="-llog -lcutils"
+export C_INCLUDE_PATH=~/logging/liblog/include:~/core/libcutils/include
+meson setup angle --debug --reconfigure  --prefix=$PREFIX -D angle=true  -D platforms=egl
+rm $PREFIX/lib/libvirglrenderer.so
+ninja install -C angle
+
+# you also have to build epoxy WITHOUT glx unfortunately. looking for a solution to this
+# meson setup out --debug --reconfigure --prefix=$PREFIX -Degl=yes -Dglx=no -Dx11=false

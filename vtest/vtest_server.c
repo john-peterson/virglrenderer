@@ -95,6 +95,7 @@ struct vtest_server
    bool venus;
 
    bool no_virgl;
+   bool angle_path;
    bool use_compat_profile;
 
    int ctx_flags;
@@ -129,6 +130,7 @@ static void vtest_server_open_socket(void);
 static void vtest_server_run(void);
 static void vtest_server_close_socket(void);
 static int vtest_client_dispatch_commands(struct vtest_client *client);
+extern void epoxy_set_library_path(const char *path, const char *suffix);
 
 
 int vtest_main(int argc, char **argv)
@@ -174,6 +176,9 @@ while (__AFL_LOOP(1000)) {
 #define OPT_SOCKET_PATH 'p'
 #define OPT_NO_VIRGL 'g'
 #define OPT_COMPAT_PROFILE 'c'
+#define OPT_ANGLE_GL 400
+#define OPT_ANGLE_VULKAN 401
+#define OPT_ANGLE_NULL 402
 
 static void vtest_server_parse_args(int argc, char **argv)
 {
@@ -191,6 +196,11 @@ static void vtest_server_parse_args(int argc, char **argv)
       {"socket-path",         required_argument, NULL, OPT_SOCKET_PATH},
       {"no-virgl",            no_argument, NULL, OPT_NO_VIRGL},
       {"compat",              no_argument, NULL, OPT_COMPAT_PROFILE},
+#if ENABLE_ANGLE
+      {"angle-gl",            no_argument, NULL, OPT_ANGLE_GL},
+      {"angle-vulkan",        no_argument, NULL, OPT_ANGLE_VULKAN},
+      {"angle-null",          no_argument, NULL, OPT_ANGLE_NULL},
+#endif
       {0, 0, 0, 0}
    };
 
@@ -238,6 +248,26 @@ static void vtest_server_parse_args(int argc, char **argv)
       case OPT_COMPAT_PROFILE:
          server.use_compat_profile = true;
          break;
+      case OPT_ANGLE_GL:
+      case OPT_ANGLE_VULKAN:
+      case OPT_ANGLE_NULL:
+         if (server.angle_path) {
+             printf("Only one of [--angle-* can be used at the same time.");
+             exit(EXIT_FAILURE);
+         }
+         server.angle_path = 1;
+      switch (ret) {
+      case OPT_ANGLE_GL:
+         epoxy_set_library_path("opt/angle-android/gl", "_angle");
+         break;
+      case OPT_ANGLE_VULKAN:
+         epoxy_set_library_path("opt/angle-android/vulkan", "_angle");
+         break;
+      case OPT_ANGLE_NULL:
+         epoxy_set_library_path("opt/angle-android/vulkan-null", "_angle");
+         break;
+      }
+         break;
 #ifdef ENABLE_VENUS
       case OPT_VENUS:
          server.venus = true;
@@ -248,7 +278,11 @@ static void vtest_server_parse_args(int argc, char **argv)
          break;
       default:
          printf("Usage: %s [--no-fork] [--no-loop-or-fork] [--multi-clients] "
+#if ENABLE_ANGLE
+                "[--angle-gl] [--angle-gl] [--angle-null] "
+#else
                 "[--use-glx] [--use-egl-surfaceless] [--use-gles] [--no-virgl]"
+#endif
                 "[--rendernode <dev>] [--socket-path <path>] "
                 "%s"
                 " [file]\n", argv[0], ven);
@@ -264,7 +298,12 @@ static void vtest_server_parse_args(int argc, char **argv)
       server.do_fork = false;
       server.multi_clients = false;
    }
-
+#if ENABLE_ANGLE
+   server.use_egl_surfaceless = true;
+   server.use_glx = false;
+   server.use_gles = true;
+   server.no_virgl = false;
+#endif
    if (!server.no_virgl) {
       server.ctx_flags = VIRGL_RENDERER_USE_EGL;
       if (server.use_glx) {

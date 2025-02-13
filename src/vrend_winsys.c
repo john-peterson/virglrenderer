@@ -55,7 +55,13 @@ static struct virgl_glx *glx_info = NULL;
 int vrend_winsys_init(uint32_t flags, int preferred_fd)
 {
    if (flags & VIRGL_RENDERER_USE_EGL) {
-#ifdef ENABLE_GBM
+#if ENABLE_ANGLE
+      egl = virgl_egl_init(NULL, flags & VIRGL_RENDERER_USE_SURFACELESS,
+                           flags & VIRGL_RENDERER_USE_GLES);
+      if (!egl)
+         return -1;
+      use_context = CONTEXT_EGL;
+#elif defined(ENABLE_GBM)
       /*
        * If the user specifies a preferred DRM fd and we can't use it, fail. If the user doesn't
        * specify an fd, it's possible to initialize EGL without one.
@@ -98,7 +104,13 @@ int vrend_winsys_init(uint32_t flags, int preferred_fd)
 
 void vrend_winsys_cleanup(void)
 {
-#ifdef ENABLE_GBM
+#if ENABLE_ANGLE
+   if (use_context == CONTEXT_EGL) {
+      virgl_egl_destroy(egl);
+      egl = NULL;
+      use_context = CONTEXT_NONE;
+   }
+#elif defined(ENABLE_GBM)
    if (use_context == CONTEXT_EGL) {
       virgl_egl_destroy(egl);
       egl = NULL;

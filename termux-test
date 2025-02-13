@@ -1,0 +1,16 @@
+# this patch 
+virgl_test_server --socket-path=$TMPDIR/.virgl_test --angle-null &
+
+# repo build of this patch "apt install virglrenderer-android "
+# virgl_test_server_android --angle-null &
+
+# original version angle=gl does not work  
+# angle=vulkan-null LD_LIBRARY_PATH=$PREFIX/opt/angle-android/$angle virgl_test_server --socket-path=$TMPDIR/.virgl_test --use-egl-surfaceless --use-gles &
+
+LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=virpipe eglinfo -p surfaceless -v|less
+# EGL driver name: swrast
+
+# LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=virpipe glmark2 -b vertex
+# [build] use-vbo=false: FPS: 87 FrameTime: 11.552 ms
+
+pkill virgl

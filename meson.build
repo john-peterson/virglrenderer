@@ -160,6 +160,7 @@ endif
 
 with_host_windows = host_machine.system() == 'windows'
 with_host_darwin = host_machine.system() == 'darwin'
+with_host_android = host_machine.system() == 'android'
 
 if thread_dep.found() and not with_host_windows
   conf_data.set('HAVE_PTHREAD', 1)
@@ -276,7 +277,7 @@ endif
 
 if with_egl
    if cc.has_header('epoxy/egl.h', dependencies: epoxy_dep) and epoxy_dep.get_variable(pkgconfig: 'epoxy_has_egl') == '1'
-      if with_host_windows or with_host_darwin
+      if with_host_windows or with_host_darwin or with_host_android
          have_egl = true
       else
          if libdrm_dep.found()
@@ -320,6 +321,11 @@ endif
 with_check_gl_errors = get_option('check-gl-errors')
 if with_check_gl_errors
    conf_data.set('CHECK_GL_ERRORS', 1)
+endif
+
+with_angle = get_option('angle')
+if with_angle
+   conf_data.set('ENABLE_ANGLE', 1)
 endif
 
 with_venus = get_option('venus')

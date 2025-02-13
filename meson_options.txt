@@ -46,6 +46,13 @@ option(
 )
 
 option(
+  'angle',
+  type : 'boolean',
+  value : 'false',
+  description : 'enable support for angle'
+)
+
+option(
   'venus-validate',
   type : 'boolean',
   value : 'false',
