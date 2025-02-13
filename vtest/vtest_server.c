@@ -77,7 +77,7 @@ struct vtest_client
 
 struct vtest_server
 {
-   const char *socket_name;
+   const char socket_name[0xff];
    int socket;
    const char *read_file;
 
@@ -105,7 +105,6 @@ struct vtest_server
 };
 
 struct vtest_server server = {
-   .socket_name = VTEST_DEFAULT_SOCKET_NAME,
    .socket = -1,
 
    .read_file = NULL,
@@ -244,7 +243,7 @@ static void vtest_server_parse_args(int argc, char **argv)
          break;
 #endif
       case OPT_SOCKET_PATH:
-         server.socket_name = optarg;
+         strncpy(server.socket_name, optarg, sizeof(server.socket_name));
          break;
       default:
          printf("Usage: %s [--no-fork] [--no-loop-or-fork] [--multi-clients] "
@@ -304,6 +303,8 @@ static void vtest_server_getenv(void)
    server.use_gles = getenv("VTEST_USE_GLES") != NULL;
    server.render_device = getenv("VTEST_RENDERNODE");
    server.use_compat_profile = getenv("VTEST_USE_COMPATIBILITY_PROFILE");
+   char *tmp = getenv("TMPDIR");
+   sprintf(server.socket_name, "%s/%s", tmp ? tmp : VTEST_DEFAULT_SOCKET_PATH, VTEST_DEFAULT_SOCKET_NAME);
 }
 
 static void handler(int sig, siginfo_t *si, void *unused)

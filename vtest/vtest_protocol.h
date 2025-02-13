@@ -25,7 +25,8 @@
 #ifndef VTEST_PROTOCOL
 #define VTEST_PROTOCOL
 
-#define VTEST_DEFAULT_SOCKET_NAME "/tmp/.virgl_test"
+#define VTEST_DEFAULT_SOCKET_PATH "/tmp"
+#define VTEST_DEFAULT_SOCKET_NAME ".virgl_test"
 
 #define VTEST_PROTOCOL_VERSION 3
 
